@@ -101,7 +101,7 @@ function Home() {
               <ArrowRight className="w-4 h-4" />
             </Link>
             <a
-              href="https://github.com/yourusername/careergps"
+              href="https://github.com/NagaaSaketh/CareerGPS"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-6 py-3 bg-white text-slate-700 text-sm font-medium rounded-md border border-slate-200 hover:border-slate-300 hover:text-slate-900 transition-colors"
