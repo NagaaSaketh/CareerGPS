@@ -88,104 +88,6 @@ function getAvailableRoles() {
   return Array.from(roles)
 }
 
-function getWeekTheme(week, roleSkills, cycle = 1) {
-  const n = roleSkills?.length || 0
-  // Offset skill selection by cycle so each cycle emphasises a different set of skills,
-  // even when the role has only 3–4 skills.
-  const skillOffset = (cycle - 1) * 2
-  const posOffset = Math.floor(week / 6)
-  const skillA = n > 0 ? roleSkills[(skillOffset + posOffset * 3 + 0) % n] : 'core'
-  const skillB = n > 0 ? roleSkills[(skillOffset + posOffset * 3 + 1) % n] : 'secondary'
-  const skillC = n > 0 ? roleSkills[(skillOffset + posOffset * 3 + 2) % n] : 'advanced'
-  const cyclePos = week % 6
-
-  // Cycle-aware complexity labels so descriptions progress across cycles
-  const complexity = cycle === 1 ? 'basic' : cycle === 2 ? 'production-grade' : 'advanced'
-  const buildOn = cycle > 1 ? ` Apply patterns you established in Cycle ${cycle - 1} — raise the bar on code quality and test coverage.` : ''
-
-  switch (cyclePos) {
-    case 1:
-      if (week === 1) {
-        if (cycle === 1) {
-          return {
-            title: 'Set up your project foundation',
-            description: 'Initialize a repository, configure dependencies, and create the project structure. Focus on a clean scaffold with README and setup instructions.',
-            expected: 'Working repo with README and setup instructions',
-            skill: skillA,
-          }
-        }
-        return {
-          title: `Launch a new ${formatLabel(skillA)} project — Cycle ${cycle}`,
-          description: `Start a more complex project with ${formatLabel(skillA)} at its core.${buildOn} Aim for a cleaner architecture, a CI config, and meaningful tests from day one.`,
-          expected: `New project initialised with ${formatLabel(skillA)}, README, CI config, and at least one passing test`,
-          skill: skillA,
-        }
-      }
-      return {
-        title: `Refactor or start a new ${formatLabel(skillA)} project`,
-        description: `Begin a fresh ${formatLabel(skillA)} project or meaningfully refactor an existing one.${buildOn}`,
-        expected: 'Restructured codebase or new repo with clear module boundaries',
-        skill: skillA,
-      }
-    case 2:
-      return {
-        title: `Build a ${complexity} ${formatLabel(skillA)} feature`,
-        description: `Implement a ${complexity} feature using ${formatLabel(skillA)}. Write tests alongside the code and commit incrementally.${buildOn}`,
-        expected: `${formatLabel(skillA)} feature committed with ${cycle === 1 ? 'basic' : 'comprehensive'} tests`,
-        skill: skillA,
-      }
-    case 3:
-      if (cycle === 1) {
-        return {
-          title: `Learn ${formatLabel(skillB)} fundamentals`,
-          description: `Study the core concepts of ${formatLabel(skillB)} and build a minimal working example. Follow official docs or a focused tutorial — no production wiring yet, just understanding the basics.`,
-          expected: `A basic ${formatLabel(skillB)} example working locally with notes on what you learned`,
-          skill: skillB,
-        }
-      }
-      return {
-        title: `Integrate ${formatLabel(skillB)} with full error handling`,
-        description: `Wire ${formatLabel(skillB)} into your existing project. Handle all failure modes, add retry logic, and document the API surface.${buildOn}`,
-        expected: `${formatLabel(skillB)} integrated with error handling and retry logic`,
-        skill: skillB,
-      }
-    case 4:
-      return cycle === 1
-        ? {
-            title: 'Add tests and documentation',
-            description: 'Write tests for recent features, handle edge cases, and document APIs or usage patterns.',
-            expected: 'Tests written, docs added, edge cases handled',
-            skill: skillA,
-          }
-        : {
-            title: 'Performance profiling and hardening',
-            description: `Profile your ${formatLabel(skillA)} code for bottlenecks. Optimise the top two issues and add load or stress tests that cover edge cases.${buildOn}`,
-            expected: 'Profiling report, two optimisations applied, stress tests added',
-            skill: skillA,
-          }
-    case 5:
-      return cycle === 1
-        ? {
-            title: 'Deploy and automate',
-            description: 'Deploy the project to a live environment. Set up CI/CD or automated testing pipelines.',
-            expected: 'Live deployment with automation pipeline',
-            skill: skillC,
-          }
-        : {
-            title: `Deploy with monitoring and ${formatLabel(skillC)} observability`,
-            description: `Re-deploy with structured logging, error alerting, and a basic ${formatLabel(skillC)} health dashboard.${buildOn} Simulate a failure and verify the alert fires.`,
-            expected: 'Live deployment with logging, alerting, and a health dashboard',
-            skill: skillC,
-          }
-    default: // 0
-      return {
-        title: `Build a${cycle > 1 ? ' complex' : ' working'} ${formatLabel(skillC)} feature`,
-        description: `Implement a ${complexity} ${formatLabel(skillC)} feature that demonstrates understanding. Include error handling${cycle > 1 ? ', performance considerations,' : ''} and edge case coverage.${buildOn}`,
-        expected: `${formatLabel(skillC)} feature with error handling${cycle > 1 ? ', optimised paths,' : ''} and edge cases`,
-        skill: skillC,
-      }
-  }
-}
 
 function computeTwelveWeekStats(checkinData) {
   const checkins = Object.values(checkinData || {})
@@ -816,21 +718,13 @@ function WeeklyCheckin() {
       breakthrough: Flame,
     }[progressType] || Activity
     redFlags = backendReport.red_flags || []
-    const _backendTasks = (backendReport.next_tasks || []).map((t) => ({
+    // All 3 tasks are now Claude-generated on the backend — display as-is
+    nextTasks = (backendReport.next_tasks || []).map((t) => ({
       number: t.number,
       title: t.title,
       description: t.description,
       expected: t.expected,
     }))
-    // Always use cycle-aware theme for Task 1 so each cycle has a different
-    // project focus. Keep backend Tasks 2 & 3 for adaptive application/practice guidance.
-    const _nextWeekForTheme = week + 1
-    const _roleSkillsForTheme = role?.skills || ['core skill', 'problem solving']
-    const _theme = getWeekTheme(_nextWeekForTheme, _roleSkillsForTheme, cycle)
-    nextTasks = [
-      { number: 1, title: _theme.title, description: _theme.description, expected: _theme.expected },
-      ..._backendTasks.filter(t => t.number > 1),
-    ]
   } else {
     // Local fallback: trend-aware, input-driven, role-specific
     const hasProject = t.project >= 1
@@ -964,61 +858,35 @@ function WeeklyCheckin() {
         { number: 3, title: 'Complete 1 mock interview', description: 'Record the session and identify two improvement areas.', expected: 'Recording reviewed, improvement plan made' }
       ]
     } else {
-      // Task 1: Week-themed project task (rotating skills + progressive narrative)
-      const theme = getWeekTheme(nextWeek, roleSkills, cycle)
-      nextTasks = [
-        { number: 1, title: theme.title, description: theme.description, expected: theme.expected }
-      ]
+      // Local fallback (no backend): role-specific, week/cycle-aware templates
+      const skillA = roleSkills[0] || 'core skill'
+      const skillB = roleSkills[1] || skillA
+      const skillC = roleSkills[2] || skillB
+      const roleName = role?.name || 'target role'
+      const complexity = cycle === 1 ? 'working' : 'production-grade'
 
-      // Task 2: Adaptive application / interview / profile fix
+      // Task 1: role-specific build task
+      nextTasks = [{
+        number: 1,
+        title: `Build a ${complexity} ${formatLabel(skillA)} feature`,
+        description: `Implement a ${complexity} ${formatLabel(skillA)} feature for your ${roleName} portfolio. Commit incrementally with clear commit messages.`,
+        expected: `${formatLabel(skillA)} feature committed to GitHub with README update`,
+      }]
+
+      // Task 2: market signal task
       if (ms.interviews > 0) {
-        nextTasks.push({
-          number: 2,
-          title: `Practice ${formatLabel(roleSkills[0]) || 'technical'} interview questions`,
-          description: 'Focus on areas where you struggled in recent rounds.',
-          expected: '5 questions practiced with timed responses'
-        })
+        nextTasks.push({ number: 2, title: `Practice ${formatLabel(skillA)} interview questions`, description: `Focus on ${roleName}-specific ${formatLabel(skillA)} questions. Target areas where you felt least confident.`, expected: '5 questions answered with timed responses' })
       } else if (ms.applications >= 10 && ms.responses === 0) {
-        nextTasks.push({
-          number: 2,
-          title: 'Get profile reviewed',
-          description: 'Have your resume and GitHub reviewed by two professionals. Implement the top feedback items.',
-          expected: 'Top 5 improvements implemented'
-        })
+        nextTasks.push({ number: 2, title: `Audit your ${roleName} profile`, description: `Have your resume and GitHub reviewed by two professionals with ${roleName} experience. Implement the top feedback.`, expected: 'Top 5 resume and GitHub improvements implemented' })
       } else if (ms.applications === 0) {
-        nextTasks.push({
-          number: 2,
-          title: 'Apply to 5 roles',
-          description: 'Send applications with your project links.',
-          expected: '5 applications with personalized notes'
-        })
+        nextTasks.push({ number: 2, title: `Apply to 5 ${roleName} roles`, description: `Send 5 applications to ${roleName} positions on LinkedIn and Naukri. Reference your ${formatLabel(skillB)} project in each.`, expected: `5 ${roleName} applications sent with project links` })
       } else {
-        nextTasks.push({
-          number: 2,
-          title: 'Apply to 3–5 roles',
-          description: 'Include personalized cover notes referencing your project.',
-          expected: 'Applications sent with project links'
-        })
+        nextTasks.push({ number: 2, title: `Apply to 3–5 ${roleName} roles`, description: `Send 3–5 ${roleName} applications with personalized cover notes highlighting your ${formatLabel(skillB)} work.`, expected: 'Applications sent with role-specific cover notes' })
       }
 
-      // Task 3: Adaptive practice / learning (fill the gap)
-      if (t.practice === 0) {
-        const skill = roleSkills[1] || 'problem solving'
-        nextTasks.push({
-          number: 3,
-          title: `Solve 3 ${formatLabel(skill)} problems`,
-          description: `Practice ${formatLabel(skill)} fundamentals.`,
-          expected: '3 problems solved with optimal approach'
-        })
-      } else {
-        const gapSkill = roleSkills[2] || 'fundamentals'
-        nextTasks.push({
-          number: 3,
-          title: `Deep-dive into ${formatLabel(gapSkill)}`,
-          description: 'Study for up to 2 hours. Apply the concept in a practical example immediately after.',
-          expected: 'Notes taken, one practical example built'
-        })
-      }
+      // Task 3: learning/practice task
+      const depth = cycle === 1 ? 'foundational' : 'advanced'
+      nextTasks.push({ number: 3, title: `Study ${formatLabel(skillC)} ${depth} concepts`, description: `Spend 2 hours on ${formatLabel(skillC)} ${depth} concepts using official docs. Build one practical ${roleName} example immediately after.`, expected: `Notes taken, one working ${formatLabel(skillC)} example committed` })
     }
   }
 
