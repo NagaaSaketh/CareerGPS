@@ -43,6 +43,12 @@ function formatLabel(str) {
  * When that happens, fall back to a LinkedIn job search for title+company.
  */
 function getApplyUrl(job) {
+  // Mock jobs have fake URLs — redirect to a real LinkedIn search instead
+  if (job.source === 'mock') {
+    const q = encodeURIComponent(`${job.title || ''}`.trim())
+    const loc = encodeURIComponent(job.location || '')
+    return `https://www.linkedin.com/jobs/search/?keywords=${q}&location=${loc}`
+  }
   const url = job.url || ''
   if (!url) return ''
   // LinkedIn company page — not a job listing
