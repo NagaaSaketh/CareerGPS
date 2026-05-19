@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -121,11 +121,12 @@ function ProfileForm() {
   // GitHub validation state
   const [githubValidating, setGithubValidating] = useState(false);
   const [githubInfo, setGithubInfo] = useState(null); // { username, public_repos, valid }
+  const githubDebounceRef = useRef(null);
 
   const validateGithubUrl = async (url) => {
-    if (!url?.trim()) { setGithubInfo(null); return; }
+    if (!url?.trim()) { setGithubInfo(null); setGithubValidating(false); return; }
     const match = url.match(/github\.com\/([a-zA-Z0-9_-]+)/);
-    if (!match) { setGithubInfo({ valid: false }); return; }
+    if (!match) { setGithubInfo({ valid: false }); setGithubValidating(false); return; }
     const username = match[1];
     setGithubValidating(true);
     setGithubInfo(null);
@@ -137,6 +138,19 @@ function ProfileForm() {
     } catch {
       setGithubInfo({ valid: false });
     } finally {
+      setGithubValidating(false);
+    }
+  };
+
+  const handleGithubChange = (val) => {
+    setFormData((prev) => ({ ...prev, githubUrl: val }));
+    if (githubDebounceRef.current) clearTimeout(githubDebounceRef.current);
+    if (val.includes('github.com/')) {
+      setGithubValidating(true);
+      setGithubInfo(null);
+      githubDebounceRef.current = setTimeout(() => validateGithubUrl(val), 900);
+    } else {
+      setGithubInfo(null);
       setGithubValidating(false);
     }
   };
@@ -501,17 +515,15 @@ function ProfileForm() {
                   type="url"
                   placeholder="https://github.com/username"
                   value={formData.githubUrl}
-                  onChange={(e) =>
-                    setFormData({ ...formData, githubUrl: e.target.value })
-                  }
-                  onBlur={(e) => validateGithubUrl(e.target.value)}
+                  onChange={(e) => handleGithubChange(e.target.value)}
                   className={`w-full h-10 rounded-md border bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 ${
                     githubInfo?.valid === false ? 'border-red-300' : 'border-slate-300'
                   }`}
                 />
                 {githubValidating && (
-                  <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
-                    <Loader2 className="w-3 h-3 animate-spin" /> Checking GitHub profile…
+                  <p className="text-[11px] text-slate-500 mt-1 flex items-center gap-1.5">
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    Verifying your GitHub profile… this checks that the username exists and counts public repos.
                   </p>
                 )}
                 {githubInfo?.valid === true && (

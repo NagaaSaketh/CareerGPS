@@ -548,6 +548,29 @@ export const getSuggestedRoles = (strengths) => {
     suggestions.add('qa_automation')
     suggestions.add('sdet')
   }
+  if (strengths.writing && !strengths.coding) {
+    suggestions.add('technical_writer')
+    suggestions.add('business_analyst')
+    suggestions.add('ux_designer')
+  }
+  if (strengths.writing && strengths.design) {
+    suggestions.add('ux_designer')
+    suggestions.add('technical_writer')
+  }
+  if (strengths.leading) {
+    suggestions.add('product_manager')
+    suggestions.add('project_manager')
+    suggestions.add('solutions_engineer')
+  }
+  if (strengths.leading && strengths.coding) {
+    suggestions.add('sde')
+    suggestions.add('devops_engineer')
+  }
+  if (strengths.leading && strengths.people) {
+    suggestions.add('product_manager')
+    suggestions.add('project_manager')
+    suggestions.add('business_analyst')
+  }
 
   return Array.from(suggestions).slice(0, 6)
 }
