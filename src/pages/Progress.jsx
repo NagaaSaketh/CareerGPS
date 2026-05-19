@@ -101,21 +101,19 @@ function Progress() {
           allRoleIds.add(sessionRole)
         }
 
-        const enriched = []
-        for (const roleId of Array.from(allRoleIds)) {
-          const role = getRoleById(roleId)
-          if (checkinRoleIds.has(roleId)) {
-            // Has check-ins — fetch real summary
-            const summary = await getBackendCheckinSummary(roleId)
-            enriched.push({
-              roleId,
-              name: role?.name || formatLabel(roleId),
-              category: role?.category || 'engineering',
-              ...summary,
-            })
-          } else {
-            // Has a report but no check-ins yet — show as 0 weeks
-            enriched.push({
+        const enriched = await Promise.all(
+          Array.from(allRoleIds).map(async (roleId) => {
+            const role = getRoleById(roleId)
+            if (checkinRoleIds.has(roleId)) {
+              const summary = await getBackendCheckinSummary(roleId)
+              return {
+                roleId,
+                name: role?.name || formatLabel(roleId),
+                category: role?.category || 'engineering',
+                ...summary,
+              }
+            }
+            return {
               roleId,
               name: role?.name || formatLabel(roleId),
               category: role?.category || 'engineering',
@@ -124,9 +122,9 @@ function Progress() {
               progressType: 'motion',
               applications: 0,
               responses: 0,
-            })
-          }
-        }
+            }
+          })
+        )
 
         enriched.sort((a, b) => (b.latestWeek || 0) - (a.latestWeek || 0))
         setRoles(enriched)
