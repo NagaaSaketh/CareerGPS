@@ -71,8 +71,8 @@ VITE_API_URL=your_backend_url
 - Log market signals: applications sent, responses received, interviews attended
 - Progress classified as Compliance / Motion / Real Progress / Breakthrough
 - Detects stagnation loops and Application Black Hole patterns
-- Generates 3 context-aware tasks for the coming week
-- Multi-cycle support: after Week 12, start a new cycle with progressively harder tasks (skill rotation + complexity escalation per cycle)
+- Generates 3 tasks for the coming week using Claude — adapted to your role, week, cycle, and last 4 check-in summaries; silent fallback to role-specific templates if the API is unavailable
+- Multi-cycle support: after Week 12, start a new cycle with increasing depth — Claude escalates task complexity per cycle based on actual check-in history
 
 **Progress Dashboard**
 - Multi-role tracking — see all roles you've ever tracked in one view
