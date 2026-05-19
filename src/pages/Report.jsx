@@ -120,23 +120,53 @@ function JobCard({ job, index }) {
   )
 }
 
+function formatSource(source) {
+  if (!source || source === 'mock') return null
+  // "hitachi_careers_-_hitachi_global" → "Hitachi Careers"
+  // "cognizant_careers" → "Cognizant"
+  return source
+    .replace(/_-_.*/i, '')       // drop site-name suffix after " - "
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase())
+    .replace(/\s+careers?$/i, '') // remove trailing "Careers"
+    .trim()
+}
+
 function JobsSection({ profile, report, preferredJobs, otherJobs, internshipJobs, jobsLoading, jobsNote, onFetchJobs }) {
-  const hasPreferred = preferredJobs.length > 0
-  const hasOther = otherJobs.length > 0
-  const hasInternships = internshipJobs.length > 0
-  const hasAny = hasPreferred || hasOther || hasInternships
+  // Merge into one flat list: live/real jobs first, mock jobs last
+  const allJobs = [
+    ...preferredJobs,
+    ...otherJobs,
+    ...internshipJobs,
+  ]
+  const seen = new Set()
+  const uniqueJobs = allJobs.filter(j => {
+    const key = j.url || `${j.title}|${j.company}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  }).sort((a, b) => {
+    // Real jobs before mock jobs
+    if (a.source === 'mock' && b.source !== 'mock') return 1
+    if (a.source !== 'mock' && b.source === 'mock') return -1
+    return 0
+  })
+
+  const hasAny = uniqueJobs.length > 0
   const fetched = hasAny || (jobsNote && !jobsLoading)
 
   return (
     <div className="rounded-lg border border-zinc-100 bg-white overflow-hidden">
-      <div className="px-5 py-4 border-b border-zinc-50 flex items-center justify-between">
+      {/* Header */}
+      <div className="px-5 py-4 border-b border-zinc-100 flex items-center justify-between">
         <div>
           <h2 className="text-sm font-semibold text-zinc-900">Open Positions</h2>
           <p className="text-xs text-zinc-400 mt-0.5">
-            {profile?.selectedRole
+            {hasAny
+              ? `${uniqueJobs.length} position${uniqueJobs.length !== 1 ? 's' : ''} found`
+              : profile?.selectedRole
               ? `${getRoleById(profile.selectedRole)?.name || profile.selectedRole.replace(/_/g, ' ')} roles`
-              : 'Relevant roles'}{' '}
-            {profile?.location ? `· ${profile.location}` : ''}
+              : 'Relevant roles'}
           </p>
         </div>
         {!fetched && (
@@ -145,11 +175,10 @@ function JobsSection({ profile, report, preferredJobs, otherJobs, internshipJobs
             disabled={jobsLoading}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-zinc-900 text-white hover:bg-zinc-800 disabled:opacity-50 transition-colors"
           >
-            {jobsLoading ? (
-              <><span className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin" />Fetching…</>
-            ) : (
-              <>Get Jobs</>
-            )}
+            {jobsLoading
+              ? <><span className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin" />Fetching…</>
+              : 'Get Jobs'
+            }
           </button>
         )}
         {fetched && !jobsLoading && (
@@ -162,68 +191,38 @@ function JobsSection({ profile, report, preferredJobs, otherJobs, internshipJobs
         )}
       </div>
 
-      <div className="px-5 py-4">
+      {/* Body */}
+      <div>
         {/* Loading */}
         {jobsLoading && (
-          <div className="py-8 flex flex-col items-center gap-3">
+          <div className="py-10 flex flex-col items-center gap-3">
             <span className="w-5 h-5 border-2 border-zinc-200 border-t-zinc-600 rounded-full animate-spin" />
-            <p className="text-xs text-zinc-400">{jobsNote || 'Fetching jobs…'}</p>
+            <p className="text-xs text-zinc-400">Fetching jobs…</p>
           </div>
         )}
 
-        {/* Empty state */}
-        {!jobsLoading && !hasAny && !fetched && (
-          <div className="py-8 text-center">
+        {/* Not yet fetched */}
+        {!jobsLoading && !fetched && (
+          <div className="py-10 text-center">
             <p className="text-sm text-zinc-400">Click "Get Jobs" to find matching positions</p>
           </div>
         )}
 
         {/* No results after fetch */}
         {!jobsLoading && fetched && !hasAny && (
-          <div className="py-8 text-center">
+          <div className="py-10 text-center px-5">
             <p className="text-sm text-zinc-500 font-medium">No jobs found right now</p>
-            <p className="text-xs text-zinc-400 mt-1">No listings matched your role and experience level. Try "Refresh Live" to check for new postings.</p>
+            <p className="text-xs text-zinc-400 mt-1">Try "Refresh Live" to check for new postings.</p>
           </div>
         )}
 
-        {/* Preferred location jobs */}
-        {!jobsLoading && hasPreferred && (
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-3">
-              Matching your location
-            </p>
-            {preferredJobs.slice(0, 5).map((job, i) => (
-              <JobRow key={i} job={job} />
+        {/* Job list — scrollable, shows all */}
+        {!jobsLoading && hasAny && (
+          <div className="divide-y divide-zinc-50 max-h-[520px] overflow-y-auto">
+            {uniqueJobs.map((job, i) => (
+              <JobRow key={job.url || `${job.title}-${i}`} job={job} />
             ))}
           </div>
-        )}
-
-        {/* Other location jobs */}
-        {!jobsLoading && hasOther && (
-          <div className="space-y-2 mt-4">
-            <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-3">
-              {hasPreferred ? 'Other locations' : 'Available across India'}
-            </p>
-            {otherJobs.slice(0, 5).map((job, i) => (
-              <JobRow key={i} job={job} />
-            ))}
-          </div>
-        )}
-
-        {/* Internships fallback */}
-        {!jobsLoading && !hasPreferred && !hasOther && hasInternships && (
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-3">
-              Internships — build your profile first
-            </p>
-            {internshipJobs.slice(0, 5).map((job, i) => (
-              <JobRow key={i} job={job} />
-            ))}
-          </div>
-        )}
-
-        {jobsNote && fetched && !jobsLoading && (
-          <p className="text-[11px] text-zinc-400 mt-4 pt-3 border-t border-zinc-50">{jobsNote}</p>
         )}
       </div>
     </div>
@@ -231,46 +230,41 @@ function JobsSection({ profile, report, preferredJobs, otherJobs, internshipJobs
 }
 
 function JobRow({ job }) {
+  const source = formatSource(job.source)
+  const isMock = job.source === 'mock'
+
   return (
-    <div className="flex items-start justify-between gap-3 py-2.5 border-b border-zinc-50 last:border-0">
+    <div className="flex items-center justify-between gap-3 px-5 py-3 hover:bg-zinc-50/60 transition-colors">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-medium text-zinc-800 truncate">{job.title || 'Position'}</span>
-          {job.salary_lpa && (
-            <span className="text-xs text-emerald-600 font-medium shrink-0">
-              ₹{job.salary_lpa[0]}–{job.salary_lpa[1]} LPA
+          <span className="text-sm font-medium text-zinc-800 leading-snug">{job.title || 'Position'}</span>
+          {isMock && (
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-400 border border-zinc-200">
+              sample
             </span>
           )}
         </div>
         <p className="text-xs text-zinc-400 mt-0.5">
           {[job.company, job.location].filter(Boolean).join(' · ')}
+          {source && <span className="ml-1 text-zinc-300">· {source}</span>}
         </p>
-        {job.skills_found?.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-1.5">
-            {job.skills_found.slice(0, 4).map((s, i) => (
-              <span key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-500">
-                {s}
-              </span>
-            ))}
-          </div>
+        {job.salary_lpa && (
+          <p className="text-xs text-emerald-600 font-medium mt-0.5">
+            ₹{job.salary_lpa[0]}–{job.salary_lpa[1]} LPA
+          </p>
         )}
       </div>
-      <div className="flex items-center gap-2 shrink-0">
-        <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-50 border border-zinc-100 text-zinc-400 font-medium uppercase">
-          {job.source || 'job board'}
-        </span>
-        {job.url && (
-          <a
-            href={job.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs font-medium text-zinc-600 hover:text-zinc-900 transition-colors inline-flex items-center gap-0.5"
-          >
-            Apply
-            <ExternalLink className="w-3 h-3" />
-          </a>
-        )}
-      </div>
+      {job.url && (
+        <a
+          href={job.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors inline-flex items-center gap-0.5 shrink-0"
+        >
+          Apply
+          <ExternalLink className="w-3 h-3" />
+        </a>
+      )}
     </div>
   )
 }
