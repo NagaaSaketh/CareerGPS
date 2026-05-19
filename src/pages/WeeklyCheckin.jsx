@@ -529,10 +529,29 @@ function WeeklyCheckin() {
         }
       }
       setAllCyclesData(allData)
+
+      // If Progress page told us exactly where to land, honour it (and clear the hint)
+      const targetCycleStr = sessionStorage.getItem('continueCycle')
+      const targetWeekStr = sessionStorage.getItem('continueWeek')
+      if (targetCycleStr && targetWeekStr) {
+        sessionStorage.removeItem('continueCycle')
+        sessionStorage.removeItem('continueWeek')
+        const targetCycle = Number(targetCycleStr)
+        const targetWeek = Number(targetWeekStr)
+        setCycle(targetCycle)
+        setCheckinData(allData[targetCycle] || {})
+        setSavedWeeks(Object.keys(allData[targetCycle] || {}).map(Number).sort((a, b) => a - b))
+        setWeek(targetWeek)
+        setShowResults(false)
+        return
+      }
+
+      // Default: restore max cycle (week position is left to the user/existing week state)
       const maxCycle = Math.max(...Object.keys(allData).map(Number), 1)
+      const cycleWeeks = Object.keys(allData[maxCycle] || {}).map(Number).sort((a, b) => a - b)
       setCycle(maxCycle)
       setCheckinData(allData[maxCycle] || {})
-      setSavedWeeks(Object.keys(allData[maxCycle] || {}).map(Number).sort((a, b) => a - b))
+      setSavedWeeks(cycleWeeks)
     } catch (err) {
       console.warn('Failed to load check-ins:', err)
     }

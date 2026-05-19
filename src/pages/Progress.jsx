@@ -42,12 +42,28 @@ async function getBackendCheckinSummary(roleId) {
   try {
     const result = await getCheckins(roleId)
     const checkins = result.checkins || []
-    const weeks = checkins.map((c) => c.week).sort((a, b) => a - b)
-    const latestWeek = weeks[weeks.length - 1]
-    const latest = latestWeek ? checkins.find((c) => c.week === latestWeek) : null
+
+    // Find the max cycle and the latest week within that cycle
+    const maxCycle = checkins.reduce((m, c) => Math.max(m, c.cycle || 1), 1)
+    const currentCycleCheckins = checkins.filter((c) => (c.cycle || 1) === maxCycle)
+    const weeksInCycle = currentCycleCheckins.map((c) => c.week).sort((a, b) => a - b)
+    const latestWeek = weeksInCycle[weeksInCycle.length - 1] || null
+    const latest = latestWeek ? currentCycleCheckins.find((c) => c.week === latestWeek) : null
+
+    // Compute the next week/cycle the user should be on
+    let nextWeek = (latestWeek || 0) + 1
+    let nextCycle = maxCycle
+    if (nextWeek > 12) {
+      nextWeek = 1
+      nextCycle = maxCycle + 1
+    }
+
     return {
-      totalWeeks: weeks.length,
+      totalWeeks: checkins.length,
       latestWeek,
+      latestCycle: maxCycle,
+      nextWeek,
+      nextCycle,
       progressType: latest?.progress_type || 'motion',
       applications: checkins.reduce((sum, c) => sum + (c.applications_sent || 0), 0),
       responses: checkins.reduce((sum, c) => sum + (c.responses_received || 0), 0),
@@ -124,6 +140,14 @@ function Progress() {
 
   const handleContinue = (roleId) => {
     sessionStorage.setItem('selectedRole', roleId)
+    const roleData = roles.find((r) => r.roleId === roleId)
+    if (roleData?.nextWeek) {
+      sessionStorage.setItem('continueWeek', String(roleData.nextWeek))
+      sessionStorage.setItem('continueCycle', String(roleData.nextCycle || 1))
+    } else {
+      sessionStorage.removeItem('continueWeek')
+      sessionStorage.removeItem('continueCycle')
+    }
     navigate('/checkin')
   }
 
@@ -227,7 +251,9 @@ function Progress() {
                           <Target className="w-3 h-3" />
                           <span className="text-[10px] font-medium">Latest</span>
                         </div>
-                        <div className="text-sm font-bold text-slate-900">W{r.latestWeek || 0}</div>
+                        <div className="text-sm font-bold text-slate-900">
+                          {r.latestCycle > 1 ? `C${r.latestCycle} ` : ''}W{r.latestWeek || 0}
+                        </div>
                       </div>
                     </div>
                   </div>
