@@ -55,8 +55,9 @@ VITE_API_URL=your_backend_url
 
 **Career Assessment**
 - Select from 29+ roles across Engineering, Data, AI/ML, Design, Product, and more
-- Three discovery methods: Browse by category, Search by name, Strength Explorer
-- Submit profile with GitHub, experience, and self-rated skills
+- Three discovery methods: Browse by category, Search by name, Strength Explorer (8 strengths including writing and leading)
+- Submit profile with GitHub URL — verified in real time via GitHub public API with debounced live feedback
+- Resume upload with PDF/DOCX parsing — fills profile fields automatically
 
 **AI Report (Streaming)**
 - Claude calls 6 agents as tools and writes the report itself
@@ -71,10 +72,12 @@ VITE_API_URL=your_backend_url
 - Progress classified as Compliance / Motion / Real Progress / Breakthrough
 - Detects stagnation loops and Application Black Hole patterns
 - Generates 3 context-aware tasks for the coming week
+- Multi-cycle support: after Week 12, start a new cycle with progressively harder tasks (skill rotation + complexity escalation per cycle)
 
 **Progress Dashboard**
 - Multi-role tracking — see all roles you've ever tracked in one view
-- Per-role week count, latest progress type, aggregate stats
+- Per-role week count, cycle number, latest progress type, aggregate response rate
+- Continue button lands on the correct next week/cycle, not Week 1
 - 12-week completion summary with real application and interview data
 
 **Authentication**
@@ -136,7 +139,7 @@ Submit weekly check-in
 
 ```
 Request: {
-  target_role, week,
+  target_role, week, cycle,
   task_hours: { learning, project, practice },
   applications_sent, responses_received, interviews_attended
 }
