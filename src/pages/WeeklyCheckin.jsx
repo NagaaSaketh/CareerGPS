@@ -808,12 +808,21 @@ function WeeklyCheckin() {
       breakthrough: Flame,
     }[progressType] || Activity
     redFlags = backendReport.red_flags || []
-    nextTasks = (backendReport.next_tasks || []).map((t) => ({
+    const _backendTasks = (backendReport.next_tasks || []).map((t) => ({
       number: t.number,
       title: t.title,
       description: t.description,
       expected: t.expected,
     }))
+    // Always use cycle-aware theme for Task 1 so each cycle has a different
+    // project focus. Keep backend Tasks 2 & 3 for adaptive application/practice guidance.
+    const _nextWeekForTheme = week + 1
+    const _roleSkillsForTheme = role?.skills || ['core skill', 'problem solving']
+    const _theme = getWeekTheme(_nextWeekForTheme, _roleSkillsForTheme, cycle)
+    nextTasks = [
+      { number: 1, title: _theme.title, description: _theme.description, expected: _theme.expected },
+      ..._backendTasks.filter(t => t.number > 1),
+    ]
   } else {
     // Local fallback: trend-aware, input-driven, role-specific
     const hasProject = t.project >= 1
