@@ -60,8 +60,8 @@ VITE_API_URL=your_backend_url
 - Resume upload with PDF/DOCX parsing — fills profile fields automatically
 
 **AI Report (Streaming)**
-- Claude calls 6 agents as tools and writes the report itself
-- Report streams live via Server-Sent Events — watch agents activate in real time
+- Agentic pipeline: Claude runs up to 8 iterations calling 5 specialist tools (skill assessment, gap analysis, path planning, job fetching, progress tracking) before writing the report — not a single prompt call
+- Report streams live via Server-Sent Events — watch agents activate in real time with word-by-word text output
 - Three sections: Where You Are, Where You Can Go, Your 3 Tasks This Week
 - Skills table with evidence vs. self-report ratings and contradiction flags
 - Career paths with timelines and success probabilities
