@@ -326,7 +326,7 @@ function Report() {
   const navigate = useNavigate()
   const [profile, setProfile] = useState(null)
   const [report, setReport] = useState(null)
-
+  const [isLoadingReport, setIsLoadingReport] = useState(true)
 
   const [backendConnected, setBackendConnected] = useState(false)
   const [preferredJobs, setPreferredJobs] = useState([])
@@ -550,6 +550,7 @@ function Report() {
       }
       setProfile(profileData)
       setReport(getDynamicReport(role, formData))
+      setIsLoadingReport(false)
     } else {
       // Returning visit — load profile + AI report from backend
       async function loadReport() {
@@ -578,10 +579,20 @@ function Report() {
             sessionStorage.setItem(`cachedReport_${role}`, saved.report_text)
           }
         } catch { /* no saved report — show Generate Report button */ }
+        setIsLoadingReport(false)
       }
       loadReport()
     }
   }, [])
+
+  if (isLoadingReport) {
+    return (
+      <div className="flex flex-col items-center justify-center py-28">
+        <Loader2 className="w-8 h-8 text-slate-400 animate-spin mb-4" />
+        <p className="text-sm text-slate-500">Loading your report…</p>
+      </div>
+    )
+  }
 
   if (!report) {
     return (

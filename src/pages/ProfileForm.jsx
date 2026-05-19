@@ -112,6 +112,7 @@ function ProfileForm() {
   };
 
   const [loading, setLoading] = useState(false);
+  const [resumeUploading, setResumeUploading] = useState(false);
   const [error, setError] = useState(null);
   const [toast, setToast] = useState(null);
   const [showAuth, setShowAuth] = useState(false);
@@ -535,10 +536,11 @@ function ProfileForm() {
                     type="file"
                     id="resume-upload"
                     accept=".pdf,.docx"
+                    disabled={resumeUploading}
                     onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (!file) return;
-                      setLoading(true);
+                      setResumeUploading(true);
                       try {
                         const result = await uploadResume(file);
                         setFormData((prev) => ({
@@ -554,20 +556,28 @@ function ProfileForm() {
                           showToast(`Upload failed: ${err.message}`);
                         }
                       } finally {
-                        setLoading(false);
+                        setResumeUploading(false);
                       }
                     }}
                     className="hidden"
                   />
                   <label
                     htmlFor="resume-upload"
-                    className={`flex flex-col items-center justify-center gap-1.5 w-full p-5 rounded-md border-2 border-dashed cursor-pointer transition-colors ${
-                      formData.resumeText
-                        ? "border-emerald-300 bg-emerald-50/50"
-                        : "border-slate-300 bg-slate-50/50 hover:border-slate-400"
+                    className={`flex flex-col items-center justify-center gap-1.5 w-full p-5 rounded-md border-2 border-dashed transition-colors ${
+                      resumeUploading
+                        ? "border-slate-300 bg-slate-50/50 cursor-wait"
+                        : formData.resumeText
+                        ? "border-emerald-300 bg-emerald-50/50 cursor-pointer"
+                        : "border-slate-300 bg-slate-50/50 hover:border-slate-400 cursor-pointer"
                     }`}
                   >
-                    {formData._resumeFileName ? (
+                    {resumeUploading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
+                        <span className="text-sm font-medium text-slate-600">Parsing resume…</span>
+                        <span className="text-xs text-slate-400">Extracting skills and projects</span>
+                      </>
+                    ) : formData._resumeFileName ? (
                       <>
                         <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                         <span className="text-sm font-medium text-emerald-700">{formData._resumeFileName}</span>
