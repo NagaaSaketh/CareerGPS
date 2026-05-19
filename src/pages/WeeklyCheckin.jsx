@@ -88,65 +88,92 @@ function getAvailableRoles() {
   return Array.from(roles)
 }
 
-function getWeekTheme(week, roleSkills) {
+function getWeekTheme(week, roleSkills, cycle = 1) {
   const n = roleSkills?.length || 0
-  const cycleIndex = Math.floor(week / 6)
-  const skillA = n > 0 ? roleSkills[(cycleIndex * 3 + 0) % n] : 'core'
-  const skillB = n > 0 ? roleSkills[(cycleIndex * 3 + 1) % n] : 'secondary'
-  const skillC = n > 0 ? roleSkills[(cycleIndex * 3 + 2) % n] : 'advanced'
+  // Offset skill selection by cycle so each cycle emphasises a different set of skills,
+  // even when the role has only 3–4 skills.
+  const skillOffset = (cycle - 1) * 2
+  const posOffset = Math.floor(week / 6)
+  const skillA = n > 0 ? roleSkills[(skillOffset + posOffset * 3 + 0) % n] : 'core'
+  const skillB = n > 0 ? roleSkills[(skillOffset + posOffset * 3 + 1) % n] : 'secondary'
+  const skillC = n > 0 ? roleSkills[(skillOffset + posOffset * 3 + 2) % n] : 'advanced'
   const cyclePos = week % 6
-  const prev1 = week - 2
-  const prev2 = week - 1
+
+  // Cycle-aware complexity labels so descriptions progress across cycles
+  const complexity = cycle === 1 ? 'basic' : cycle === 2 ? 'production-grade' : 'advanced'
+  const buildOn = cycle > 1 ? ` Apply patterns you established in Cycle ${cycle - 1} — raise the bar on code quality and test coverage.` : ''
 
   switch (cyclePos) {
     case 1:
       if (week === 1) {
+        if (cycle === 1) {
+          return {
+            title: 'Set up your project foundation',
+            description: 'Initialize a repository, configure dependencies, and create the project structure. Focus on a clean scaffold with README and setup instructions.',
+            expected: 'Working repo with README and setup instructions',
+            skill: skillA,
+          }
+        }
         return {
-          title: 'Set up your project foundation',
-          description: 'Initialize a repository, configure dependencies, and create the project structure. Focus on a clean scaffold with README and setup instructions.',
-          expected: 'Working repo with README and setup instructions',
+          title: `Launch a new ${formatLabel(skillA)} project — Cycle ${cycle}`,
+          description: `Start a more complex project with ${formatLabel(skillA)} at its core.${buildOn} Aim for a cleaner architecture, a CI config, and meaningful tests from day one.`,
+          expected: `New project initialised with ${formatLabel(skillA)}, README, CI config, and at least one passing test`,
           skill: skillA,
         }
       }
       return {
-        title: 'Set up a new project or major refactor',
-        description: 'Start a new project or refactor the existing codebase. Apply learnings from the previous cycle to improve architecture and organization.',
-        expected: 'New repo or refactored codebase with clear structure',
+        title: `Refactor or start a new ${formatLabel(skillA)} project`,
+        description: `Begin a fresh ${formatLabel(skillA)} project or meaningfully refactor an existing one.${buildOn}`,
+        expected: 'Restructured codebase or new repo with clear module boundaries',
         skill: skillA,
       }
     case 2:
       return {
-        title: `Build a core ${formatLabel(skillA)} feature`,
-        description: `Implement a functional feature using ${formatLabel(skillA)}. Write basic tests and commit incrementally.`,
-        expected: `${formatLabel(skillA)} feature committed with basic tests`,
+        title: `Build a ${complexity} ${formatLabel(skillA)} feature`,
+        description: `Implement a ${complexity} feature using ${formatLabel(skillA)}. Write tests alongside the code and commit incrementally.${buildOn}`,
+        expected: `${formatLabel(skillA)} feature committed with ${cycle === 1 ? 'basic' : 'comprehensive'} tests`,
         skill: skillA,
       }
     case 3:
       return {
-        title: `Integrate ${formatLabel(skillB)}`,
-        description: `Add a second core capability using ${formatLabel(skillB)}. Ensure it connects cleanly with existing features.`,
-        expected: `${formatLabel(skillB)} integration working with existing features`,
+        title: `Integrate ${formatLabel(skillB)} ${cycle > 1 ? 'with full error handling' : ''}`.trim(),
+        description: `Add ${formatLabel(skillB)} capability and wire it into existing features. ${cycle === 1 ? 'Ensure it connects cleanly.' : `Handle all failure modes, add retry logic, and document the API surface.${buildOn}`}`,
+        expected: `${formatLabel(skillB)} integration working${cycle > 1 ? ' with error handling and retry logic' : ' with existing features'}`,
         skill: skillB,
       }
     case 4:
-      return {
-        title: 'Add tests and documentation',
-        description: 'Write tests for recent features, handle edge cases, and document APIs or usage patterns.',
-        expected: 'Tests written, docs added, edge cases handled',
-        skill: skillA,
-      }
+      return cycle === 1
+        ? {
+            title: 'Add tests and documentation',
+            description: 'Write tests for recent features, handle edge cases, and document APIs or usage patterns.',
+            expected: 'Tests written, docs added, edge cases handled',
+            skill: skillA,
+          }
+        : {
+            title: 'Performance profiling and hardening',
+            description: `Profile your ${formatLabel(skillA)} code for bottlenecks. Optimise the top two issues and add load or stress tests that cover edge cases.${buildOn}`,
+            expected: 'Profiling report, two optimisations applied, stress tests added',
+            skill: skillA,
+          }
     case 5:
-      return {
-        title: 'Deploy and automate',
-        description: 'Deploy the project to a live environment. Set up CI/CD or automated testing pipelines.',
-        expected: 'Live deployment with automation pipeline',
-        skill: skillC,
-      }
+      return cycle === 1
+        ? {
+            title: 'Deploy and automate',
+            description: 'Deploy the project to a live environment. Set up CI/CD or automated testing pipelines.',
+            expected: 'Live deployment with automation pipeline',
+            skill: skillC,
+          }
+        : {
+            title: `Deploy with monitoring and ${formatLabel(skillC)} observability`,
+            description: `Re-deploy with structured logging, error alerting, and a basic ${formatLabel(skillC)} health dashboard.${buildOn} Simulate a failure and verify the alert fires.`,
+            expected: 'Live deployment with logging, alerting, and a health dashboard',
+            skill: skillC,
+          }
     default: // 0
       return {
-        title: `Build an advanced ${formatLabel(skillC)} feature`,
-        description: `Implement a complex ${formatLabel(skillC)} feature that demonstrates depth. Include error handling and edge case coverage.`,
-        expected: `${formatLabel(skillC)} feature with error handling and edge cases`,
+        title: `Build a${cycle > 1 ? ' complex' : 'n advanced'} ${formatLabel(skillC)} feature`,
+        description: `Implement a ${complexity} ${formatLabel(skillC)} feature that demonstrates depth. Include error handling${cycle > 1 ? ', performance considerations,' : ''} and edge case coverage.${buildOn}`,
+        expected: `${formatLabel(skillC)} feature with error handling${cycle > 1 ? ', optimised paths,' : ''} and edge cases`,
         skill: skillC,
       }
   }
@@ -474,17 +501,20 @@ function WeeklyCheckin() {
   }, [navigate])
 
   // Load check-ins from Supabase on mount / role change
+  const [cycle, setCycle] = useState(1)
+  // allCyclesData: { [cycleNum]: { [week]: checkinData } }
+  const [allCyclesData, setAllCyclesData] = useState({})
   const [checkinData, setCheckinData] = useState({})
 
   const reloadCheckins = async () => {
     if (!activeRole) return
     try {
       const result = await getCheckins(activeRole)
-      const data = {}
-      const weeks = []
+      const allData = {}
       for (const c of result.checkins || []) {
-        // Normalize flat Supabase fields into nested objects the UI expects
-        const normalized = {
+        const cNum = c.cycle || 1
+        if (!allData[cNum]) allData[cNum] = {}
+        allData[cNum][c.week] = {
           ...c,
           task_hours: c.task_hours || {
             learning: c.learning_hours || 0,
@@ -497,11 +527,12 @@ function WeeklyCheckin() {
             interviews_attended: c.interviews_attended || 0,
           },
         }
-        data[c.week] = normalized
-        weeks.push(c.week)
       }
-      setCheckinData(data)
-      setSavedWeeks(weeks.sort((a, b) => a - b))
+      setAllCyclesData(allData)
+      const maxCycle = Math.max(...Object.keys(allData).map(Number), 1)
+      setCycle(maxCycle)
+      setCheckinData(allData[maxCycle] || {})
+      setSavedWeeks(Object.keys(allData[maxCycle] || {}).map(Number).sort((a, b) => a - b))
     } catch (err) {
       console.warn('Failed to load check-ins:', err)
     }
@@ -641,7 +672,8 @@ function WeeklyCheckin() {
           learning: parseInt(tasks.learning) || 0,
           project: parseInt(tasks.project) || 0,
           practice: parseInt(tasks.practice) || 0,
-        }
+        },
+        cycle
       )
       setBackendReport(result)
       setBackendConnected(true)
@@ -887,7 +919,7 @@ function WeeklyCheckin() {
       ]
     } else {
       // Task 1: Week-themed project task (rotating skills + progressive narrative)
-      const theme = getWeekTheme(nextWeek, roleSkills)
+      const theme = getWeekTheme(nextWeek, roleSkills, cycle)
       nextTasks = [
         { number: 1, title: theme.title, description: theme.description, expected: theme.expected }
       ]
@@ -1010,6 +1042,34 @@ function WeeklyCheckin() {
           </span>
         </div>
         <p className="text-sm text-slate-500">Track your progress. Distinguish motion from real progress.</p>
+
+        {/* Cycle switcher */}
+        {Object.keys(allCyclesData).length > 1 && (
+          <div className="flex items-center justify-center gap-2 pt-1 flex-wrap">
+            <span className="text-xs text-slate-400">Cycle:</span>
+            {Object.keys(allCyclesData).map(Number).sort((a, b) => a - b).map((c) => (
+              <button
+                key={c}
+                onClick={() => {
+                  setCycle(c)
+                  setCheckinData(allCyclesData[c] || {})
+                  setSavedWeeks(Object.keys(allCyclesData[c] || {}).map(Number).sort((a, b) => a - b))
+                  setWeek(1)
+                  setShowResults(false)
+                }}
+                className={`text-xs px-2.5 py-0.5 rounded-full border transition-colors ${
+                  c === cycle
+                    ? 'bg-slate-900 text-white border-slate-900'
+                    : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                C{c}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Week pills for current cycle */}
         {savedWeeks.length > 0 && (
           <div className="flex items-center justify-center gap-2 pt-1 flex-wrap">
             <History className="w-3.5 h-3.5 text-slate-400" />
@@ -1404,6 +1464,10 @@ function WeeklyCheckin() {
                 </button>
                 <button
                   onClick={() => {
+                    const nextCycle = cycle + 1
+                    setCycle(nextCycle)
+                    setCheckinData(allCyclesData[nextCycle] || {})
+                    setSavedWeeks(Object.keys(allCyclesData[nextCycle] || {}).map(Number).sort((a, b) => a - b))
                     setShowInterviewModal(false)
                     setShowCompletion(false)
                     setWeek(1)

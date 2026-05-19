@@ -128,9 +128,10 @@ export async function analyzeProfile(formData, targetRole) {
  * Submit a weekly check-in and get next week's tasks.
  * Returns { checkin_report, week, progress_type, recommendation, red_flags, next_tasks }
  */
-export async function submitCheckin(week, tasksCompleted, marketSignals, targetRole, taskHours = {}) {
+export async function submitCheckin(week, tasksCompleted, marketSignals, targetRole, taskHours = {}, cycle = 1) {
   const payload = {
     week,
+    cycle,
     tasks_completed: tasksCompleted,
     applications_sent: marketSignals.applications || 0,
     responses_received: marketSignals.responses || 0,
