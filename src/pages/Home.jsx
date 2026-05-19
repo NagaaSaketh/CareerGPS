@@ -214,7 +214,7 @@ function Home() {
       <section>
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold text-slate-900 mb-3">Supported Career Paths</h2>
-          <p className="text-slate-500 max-w-lg mx-auto">From Engineering to Design to Business — CareerGPS adapts dynamically.</p>
+          <p className="text-slate-500 max-w-lg mx-auto">From Engineering to Design to Business — one system, any role.</p>
         </div>
 
         <div className="flex flex-wrap justify-center gap-2">

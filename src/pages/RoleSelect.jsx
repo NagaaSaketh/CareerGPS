@@ -243,7 +243,7 @@ function RoleSelect() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-slate-900 text-sm">What do you enjoy?</h3>
-                  <p className="text-xs text-slate-500">Select all that apply. We&apos;ll suggest roles dynamically.</p>
+                  <p className="text-xs text-slate-500">Pick your strengths — we&apos;ll show you the roles that fit.</p>
                 </div>
               </div>
 
