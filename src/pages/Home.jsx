@@ -21,8 +21,8 @@ function Home() {
     },
     {
       icon: Route,
-      title: 'Dynamic Path Planning',
-      description: 'Supports 30+ roles across Engineering, Data, AI, Design, Product, DevRel, and more.',
+      title: 'Three Paths, Not One',
+      description: 'Three routes — direct, stepping-stone, and alternative — with honest timelines and success probabilities adjusted for credential bias.',
     },
     {
       icon: TrendingUp,
