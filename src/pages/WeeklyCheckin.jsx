@@ -135,10 +135,18 @@ function getWeekTheme(week, roleSkills, cycle = 1) {
         skill: skillA,
       }
     case 3:
+      if (cycle === 1) {
+        return {
+          title: `Learn ${formatLabel(skillB)} fundamentals`,
+          description: `Study the core concepts of ${formatLabel(skillB)} and build a minimal working example. Follow official docs or a focused tutorial — no production wiring yet, just understanding the basics.`,
+          expected: `A basic ${formatLabel(skillB)} example working locally with notes on what you learned`,
+          skill: skillB,
+        }
+      }
       return {
-        title: `Integrate ${formatLabel(skillB)} ${cycle > 1 ? 'with full error handling' : ''}`.trim(),
-        description: `Add ${formatLabel(skillB)} capability and wire it into existing features. ${cycle === 1 ? 'Ensure it connects cleanly.' : `Handle all failure modes, add retry logic, and document the API surface.${buildOn}`}`,
-        expected: `${formatLabel(skillB)} integration working${cycle > 1 ? ' with error handling and retry logic' : ' with existing features'}`,
+        title: `Integrate ${formatLabel(skillB)} with full error handling`,
+        description: `Wire ${formatLabel(skillB)} into your existing project. Handle all failure modes, add retry logic, and document the API surface.${buildOn}`,
+        expected: `${formatLabel(skillB)} integrated with error handling and retry logic`,
         skill: skillB,
       }
     case 4:
@@ -171,8 +179,8 @@ function getWeekTheme(week, roleSkills, cycle = 1) {
           }
     default: // 0
       return {
-        title: `Build a${cycle > 1 ? ' complex' : 'n advanced'} ${formatLabel(skillC)} feature`,
-        description: `Implement a ${complexity} ${formatLabel(skillC)} feature that demonstrates depth. Include error handling${cycle > 1 ? ', performance considerations,' : ''} and edge case coverage.${buildOn}`,
+        title: `Build a${cycle > 1 ? ' complex' : ' working'} ${formatLabel(skillC)} feature`,
+        description: `Implement a ${complexity} ${formatLabel(skillC)} feature that demonstrates understanding. Include error handling${cycle > 1 ? ', performance considerations,' : ''} and edge case coverage.${buildOn}`,
         expected: `${formatLabel(skillC)} feature with error handling${cycle > 1 ? ', optimised paths,' : ''} and edge cases`,
         skill: skillC,
       }

@@ -219,17 +219,17 @@ function Progress() {
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-slate-900 text-sm capitalize">
-                        {r.name}
-                      </h3>
+                    <h3 className="font-semibold text-slate-900 text-sm capitalize mb-0.5">
+                      {r.name}
+                    </h3>
+                    <div className="flex items-center gap-2 mb-3">
+                      <p className="text-xs text-slate-500 capitalize">
+                        {formatLabel(r.category)}
+                      </p>
                       <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${colorClass}`}>
                         {label}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-500 capitalize mb-3">
-                      {formatLabel(r.category)}
-                    </p>
 
                     <div className="grid grid-cols-3 gap-3">
                       <div className="text-center">
