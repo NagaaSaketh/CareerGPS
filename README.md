@@ -174,4 +174,4 @@ Response: { jobs: [{ title, company, location, skills_found, salary_lpa }], sour
 
 ## Contact
 
-For bugs or feature requests, reach out at vadlamanisaketh25@gmail.com
+For bugs or feature requests, reach out to vadlamanisaketh25@gmail.com
