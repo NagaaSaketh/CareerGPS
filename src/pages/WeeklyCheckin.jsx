@@ -506,7 +506,7 @@ function WeeklyCheckin() {
   const [allCyclesData, setAllCyclesData] = useState({})
   const [checkinData, setCheckinData] = useState({})
 
-  const reloadCheckins = async () => {
+  const reloadCheckins = async ({ resetWeek = false } = {}) => {
     if (!activeRole) return
     try {
       const result = await getCheckins(activeRole)
@@ -546,19 +546,29 @@ function WeeklyCheckin() {
         return
       }
 
-      // Default: restore max cycle (week position is left to the user/existing week state)
       const maxCycle = Math.max(...Object.keys(allData).map(Number), 1)
       const cycleWeeks = Object.keys(allData[maxCycle] || {}).map(Number).sort((a, b) => a - b)
       setCycle(maxCycle)
       setCheckinData(allData[maxCycle] || {})
       setSavedWeeks(cycleWeeks)
+
+      // On first load (not a post-submit refresh), jump to the next incomplete week
+      if (resetWeek) {
+        const completedMax = cycleWeeks.length > 0 ? cycleWeeks[cycleWeeks.length - 1] : 0
+        const nextWeek = completedMax >= 12 ? 12 : completedMax + 1
+        setWeek(nextWeek)
+        // If landing on a completed week, show its results; otherwise show blank form
+        if (!allData[maxCycle]?.[nextWeek]) {
+          setShowResults(false)
+        }
+      }
     } catch (err) {
       console.warn('Failed to load check-ins:', err)
     }
   }
 
   useEffect(() => {
-    reloadCheckins()
+    reloadCheckins({ resetWeek: true })
   }, [activeRole])
 
   // Load data when week or role changes
