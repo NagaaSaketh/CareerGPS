@@ -9,7 +9,7 @@ CareerGPS is a full-stack AI career navigation application that assesses your re
 ## Quick Start
 
 ```bash
-git clone https://github.com/yourusername/careergps.git
+git clone https://github.com/NagaaSaketh/CareerGPS.git
 cd careergps/careergps-frontend
 npm install
 npm run dev
