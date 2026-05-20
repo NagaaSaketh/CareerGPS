@@ -38,6 +38,7 @@ function Layout({ children }) {
   const handleLogout = async () => {
     try {
       await dispatch(logoutUser()).unwrap()
+      navigate('/')
     } catch (err) {
       console.error('Logout failed:', err)
     }
