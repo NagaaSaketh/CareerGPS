@@ -358,6 +358,7 @@ function WeeklyCheckin() {
   const role = getRoleById(activeRole)
 
   const [week, setWeek] = useState(1)
+  const [weekLoading, setWeekLoading] = useState(true)
   const [tasks, setTasks] = useState({
     learning: '',
     project: '',
@@ -474,6 +475,8 @@ function WeeklyCheckin() {
       }
     } catch (err) {
       console.warn('Failed to load check-ins:', err)
+    } finally {
+      setWeekLoading(false)
     }
   }
 
@@ -893,6 +896,14 @@ function WeeklyCheckin() {
   const responseRate = ms.applications > 0
     ? (ms.responses / ms.applications * 100).toFixed(1)
     : 0
+
+  if (weekLoading) {
+    return (
+      <div className="flex items-center justify-center py-28">
+        <div className="w-5 h-5 border-2 border-slate-300 border-t-slate-900 rounded-full animate-spin" />
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">

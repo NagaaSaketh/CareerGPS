@@ -83,6 +83,7 @@ function Progress() {
   useEffect(() => {
     async function load() {
       setLoading(true)
+
       try {
         // Fetch both checkin roles and report roles in parallel
         const [checkinResult, reportResult] = await Promise.allSettled([
