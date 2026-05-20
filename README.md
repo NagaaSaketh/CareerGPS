@@ -2,7 +2,7 @@
 
 CareerGPS is a full-stack AI career navigation application that assesses your real skills against market evidence, maps the gap to your target role, and tracks your progress over 12 weeks — giving you three specific tasks every week instead of generic advice.
 
-[Live Demo](https://your-app.vercel.app)
+[Live Demo](https://career-route.vercel.app/)
 
 ---
 
