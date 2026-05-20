@@ -88,7 +88,7 @@ function Home() {
             variants={itemVariants}
             className="text-lg text-slate-500 max-w-xl mx-auto mb-8 leading-relaxed"
           >
-            CareerGPS is an AI-powered career navigation system built for every graduate.
+            CareerGPS is a career navigation system built for every graduate.
             Honest assessment. Real market data. Accountable execution.
           </motion.p>
 
