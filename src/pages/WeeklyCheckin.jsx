@@ -941,7 +941,7 @@ function WeeklyCheckin() {
             ) : (
               <Search className="w-3 h-3" />
             )}
-            Scrape Jobs
+            Search Jobs
           </button>
         </div>
       </div>

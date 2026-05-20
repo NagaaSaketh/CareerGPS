@@ -186,7 +186,7 @@ function JobsSection({ profile, report, preferredJobs, otherJobs, internshipJobs
             onClick={() => onFetchJobs(true)}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border border-zinc-200 text-zinc-600 hover:bg-zinc-50 transition-colors"
           >
-            Refresh Live
+            Find Live Jobs
           </button>
         )}
       </div>
@@ -323,6 +323,7 @@ function Report() {
   const [isLoadingReport, setIsLoadingReport] = useState(true)
 
   const [backendConnected, setBackendConnected] = useState(false)
+  const [structuredData, setStructuredData] = useState(null)
   const [preferredJobs, setPreferredJobs] = useState([])
   const [otherJobs, setOtherJobs] = useState([])
   const [internshipJobs, setInternshipJobs] = useState([])
@@ -400,8 +401,12 @@ function Report() {
     } else {
       roles.add(selectedRole)
     }
+    // Add the alternative role from the backend-generated paths
+    const altPath = structuredData?.paths?.find((p) => p.type === 'Alternative')
+    const altRole = altPath?.steps?.[0]?.role
+    if (altRole && getRoleById(altRole)) roles.add(altRole)
     return roles
-  }, [profile?.selectedRole])
+  }, [profile?.selectedRole, structuredData])
 
   const getUserLocation = useCallback(() => {
     if (profile?.location) return profile.location
@@ -508,6 +513,7 @@ function Report() {
           sessionStorage.setItem(`cachedReport_${targetRole}`, reportAccumulator)
           sessionStorage.setItem(`cachedEvents_${targetRole}`, JSON.stringify(eventsAccumulator))
           // Save to Supabase for cross-session persistence
+          setStructuredData(event.structured_data || null)
           saveAgenticReport(targetRole, reportAccumulator, event.structured_data || {}).catch(err => {
             console.warn('[Report] saveAgenticReport failed (non-blocking):', err)
           })
@@ -569,6 +575,7 @@ function Report() {
           if (saved?.report_text) {
             setStreamedReport(saved.report_text)
             setAiMode(true)
+            if (saved.structured_data) setStructuredData(saved.structured_data)
             // Cache it locally so navigating away and back is instant
             sessionStorage.setItem(`cachedReport_${role}`, saved.report_text)
           }
