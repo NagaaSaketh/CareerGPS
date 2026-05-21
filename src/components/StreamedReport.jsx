@@ -191,8 +191,8 @@ function SmartTd({ children }) {
   }
 
   // Contradiction — positive (yes / flagged)
-  if (/^(⚠️\s*|🔴\s*)?yes\b/i.test(text) || text.startsWith('⚠') || text.startsWith('🔴')) {
-    const label = text.replace(/^(⚠️?|🔴)\s*/i, '')
+  if (/^(⚠️\s*)?yes\b/i.test(text) || text.startsWith('⚠')) {
+    const label = text.replace(/^⚠️?\s*/i, '')
     return (
       <td className="px-4 py-3">
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-red-50 text-red-700 border border-red-100">
@@ -333,7 +333,7 @@ function buildComponents() {
   }
 }
 
-// ─── Markdown component map (module-level — built once at import time) ────────
+
 
 const MARKDOWN_COMPONENTS = buildComponents()
 
